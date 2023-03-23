@@ -792,4 +792,66 @@
         <tag>前端笔记</tag>
       </tags>
   </entry>
+  <entry>
+    <title>React18知识点</title>
+    <url>/2023/03/22/React18%E7%9F%A5%E8%AF%86%E7%82%B9/</url>
+    <content><![CDATA[<h2 id="一、Reader-API修改"><a href="#一、Reader-API修改" class="headerlink" title="一、Reader API修改"></a>一、Reader API修改</h2><h3 id="老的写法"><a href="#老的写法" class="headerlink" title="老的写法"></a>老的写法</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">ReactDOM</span> <span class="keyword">from</span> <span class="string">&#x27;react-dom&#x27;</span>;</span><br><span class="line"><span class="title class_">ReactDOM</span>.<span class="title function_">render</span>(<span class="language-xml"><span class="tag">&lt;<span class="name">App</span>/&gt;</span></span>,<span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&quot;root&quot;</span>));</span><br></pre></td></tr></table></figure>
+
+<h3 id="新的写法"><a href="#新的写法" class="headerlink" title="新的写法"></a>新的写法</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">ReactDOM</span> <span class="keyword">from</span> <span class="string">&#x27;react-dom/client&#x27;</span>;</span><br><span class="line"><span class="keyword">const</span> root =<span class="title class_">ReactDOM</span>.<span class="title function_">createRoot</span>(<span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&quot;root&quot;</span>));</span><br><span class="line">root.<span class="title function_">render</span>(</span><br><span class="line"> &lt;<span class="title class_">React</span>.<span class="property">StrictMode</span>&gt;</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">App</span>/&gt;</span></span></span><br><span class="line"> <span class="language-xml"><span class="tag">&lt;<span class="name">React.StrictMode</span>/&gt;</span></span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<span id="more"></span>
+
+<h2 id="二、自动批量更新State"><a href="#二、自动批量更新State" class="headerlink" title="二、自动批量更新State"></a>二、自动批量更新State</h2><blockquote>
+<p>React 18 默认开启批处理来实现性能提升</p>
+</blockquote>
+<p>支持批处理：</p>
+<ul>
+<li>React事件处理函数</li>
+<li>promise   (在react17不支持批量处理)</li>
+<li>setTimeout (在react17不支持批量处理)</li>
+<li>原生事件处理 (在react17不支持批量处理)</li>
+</ul>
+<blockquote>
+<p>不要开启严格模式测试<br>flushSync可以关掉react18的批量处理</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 需要分开写在flushSync里</span></span><br><span class="line"> <span class="title function_">flushSync</span>(<span class="function">()=&gt;</span>&#123;</span><br><span class="line">  <span class="title function_">setName</span>(<span class="string">&quot;ddd&quot;</span>)</span><br><span class="line"> &#125;)</span><br><span class="line"> <span class="title function_">flushSync</span>(<span class="function">()=&gt;</span>&#123;</span><br><span class="line">  <span class="title function_">setAge</span>(<span class="number">11</span>)</span><br><span class="line"> &#125;)</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、Concurrent-Mode-并发模式"><a href="#三、Concurrent-Mode-并发模式" class="headerlink" title="三、Concurrent Mode (并发模式)"></a>三、Concurrent Mode (并发模式)</h2><blockquote>
+<p>CM本身并不是一个功能，而是一个底层设计，它使得React能够同时准备多个版本的UI。</p>
+</blockquote>
+<ul>
+<li><p>在之前的React状态变更后，会开始准备虚拟DOM,然后渲染真实DOM,整个流程是串联的。一旦开始触发更新，只能等流程结束，期间是无法被中断的。</p>
+</li>
+<li><p>在并发模式下，React在执行过程中，每执行一个Fiber, 都会检查有没有更高优先级的更新，如果有,则的暂停当前低优先级，待高优先级任务执行完之后,再继续执行或重新执行</p>
+</li>
+</ul>
+<h2 id="四、useTransition"><a href="#四、useTransition" class="headerlink" title="四、useTransition"></a>四、useTransition</h2><blockquote>
+<p>React的状态更新可以分为两类：</p>
+</blockquote>
+<ul>
+<li><p>紧急更新（Urgent updates）：比如打字、点击、拖动等，需要立即响应的行为，如果不立即响应会给人很卡的感觉。</p>
+</li>
+<li><p>过度更新（Transition updates）： 将UI从一个视图过渡到另一个视图。有些延迟，不立即响应是可以接受的。<br><strong>并发模式只是提供了可中断的能力，默认情况下，所有的更新都是紧急更新。</strong></p>
+</li>
+</ul>
+<p>所以它提供了startTransition让我们手动置顶哪些更新是紧急的，哪些是非紧急的。</p>
+<h2 id="五、useDeferredValue"><a href="#五、useDeferredValue" class="headerlink" title="五、useDeferredValue"></a>五、useDeferredValue</h2><p>这个方法返回一个延迟响应的值，可以让一个state延迟生效，只是当前没有紧急更新时，该值才会变为最新值，useDefrredValue和statrtTransition一样，都是编辑了一次非紧急任务更新。</p>
+<ul>
+<li><p>相同：useDeffrredValue本质和useTransition内部实现一样，都是编辑成了延迟更新任务。</p>
+</li>
+<li><p>不同：useTransition是把更新任务变成延迟更新任务，而useDeferredValue把一个状态变成延迟状态。</p>
+</li>
+</ul>
+<h2 id="六、严格模式"><a href="#六、严格模式" class="headerlink" title="六、严格模式"></a>六、严格模式</h2><p><a href="https://zh-hans.reactjs.org/docs/strict-mode.html#gatsby-focus-wrapper">严格模式 – React (reactjs.org)</a></p>
+<h2 id="七、Suspense组件的变化"><a href="#七、Suspense组件的变化" class="headerlink" title="七、Suspense组件的变化"></a>七、Suspense组件的变化</h2><ul>
+<li>react18可以省略fallback，但react17省略就会向上找fallback，如果没找到就会报错</li>
+</ul>
+<h2 id="八、其他更新"><a href="#八、其他更新" class="headerlink" title="八、其他更新"></a>八、其他更新</h2><ul>
+<li>如果React返回一个空组件，React17只允许返回null,React也允许返回undefined。</li>
+<li>组件卸载更新状态的警告删除。</li>
+</ul>
+]]></content>
+      <tags>
+        <tag>前端笔记</tag>
+      </tags>
+  </entry>
 </search>
